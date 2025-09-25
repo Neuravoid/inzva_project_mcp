@@ -1,0 +1,27 @@
+# Core
+langgraph==0.6.7
+langchain==0.3.26
+
+# Google SDK (model.py bunu kullanıyor)
+google-generativeai==0.8.5
+
+# MCP
+mcp==1.14.1
+
+# Logging
+loguru==0.7.3
+
+# HTTP clients
+httpx==0.28.1
+aiohttp==3.12.15
+
+# Dev/test
+pytest==8.4.2
+pytest-asyncio==0.23.8
+black==24.10.0
+flake8==7.3.0
+mypy==1.18.2
+
+# Jupyter
+jupyter==1.1.1
+ipykernel==6.30.1

@@ -1,0 +1,20 @@
+"""
+State definitions for workflow engine
+"""
+from typing import TypedDict, Optional
+
+class GraphState(TypedDict):
+  """State representation for the workflow graph"""
+  session_id: Optional[str]
+  conversation_history: list[str]
+  current_user_query: str
+  selected_tool: Optional[str]
+  tool_inputs: Optional[dict[str, any]]
+  tool_result: Optional[str]
+  available_tools: list[dict[str, any]]
+  input_status: Optional[str]
+  answer_status: Optional[str]
+  routed_agent: Optional[str]
+  client_session: Optional[any]
+
+  
