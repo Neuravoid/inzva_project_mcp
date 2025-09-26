@@ -11,58 +11,42 @@ class OrchestratorAgent():
         self.client_session = client_session
 
     def route(self, state) -> str:
+        # route mantığı aynı kalabilir
         routed_agent = state.get('routed_agent', '').strip()
 
         try:
             if routed_agent == "tool_selecting_agent":
-                logger.info("tool_selecting_agent has been selected by the orchestrator")
                 return "route_tool_selecting_agent"
-            
             elif routed_agent == "tool_executing_agent":
-                logger.info("tool_executing_agent has been selected by the orchestrator")
                 return "route_tool_executing_agent"
-
-            elif routed_agent == "generation_router_agent":
-                logger.info("generation_router_agent has been selected by the orchestrator")
-                return "route_generation_router_agent"
-
             elif routed_agent == "input_parameter_agent":
-                logger.info("input_parameter_agent has been selected by the orchestrator")
                 return "route_input_parameter_agent"
-            
             elif routed_agent == "output_generation_agent":
-                logger.info("output_generation_agent has been selected by the orchestrator")
                 return "route_output_generation_agent"
-   
             else:
+                logger.warning(f"Orchestrator received an unknown agent to route: {routed_agent}")
                 return "error"
-
         except Exception as e:
             logger.error(f"There has been an error with classification routing. \n {e}")
             return "error"
     
     def process(self, state) -> dict:
-        """Process state and determine query type"""
-        conversation_history = state.get('conversation_history', '').strip()
-        current_user_query = state.get('current_user_query', '').strip()
-        selected_tool = state.get('selected_tool', '').strip()
-        tool_inputs = state.get('tool_inputs', '').strip()
-        tool_result = state.get('tool_result', '').strip()
-        available_tools = state.get('available_tools', '').strip()
-        input_status = state.get('input_status', '').strip()
-        answer_status = state.get('answer_status', '').strip()
+        """Process state and determine the next agent."""
+        conversation_history = state.get('conversation_history', [])
+        # GÜNCELLENDİ: listeyi string'e çevir
+        history_str = "\n".join(conversation_history)
 
-        full_prompt = format_prompt(self.prompt, user_question=current_user_query,
-                                    conversation_history=conversation_history,
-                                    selected_tool=selected_tool,
-                                    tool_inputs=tool_inputs,
-                                    tool_result=tool_result,
-                                    available_tools=available_tools,
-                                    input_status=input_status,
-                                    answer_status=answer_status)
+        full_prompt = format_prompt(self.prompt, 
+                                    user_question=state.get('current_user_query', ''),
+                                    conversation_history=history_str,
+                                    selected_tool=str(state.get('selected_tool', '')),
+                                    tool_inputs=str(state.get('tool_inputs', '')),
+                                    tool_result=str(state.get('tool_result', '')),
+                                    available_tools=str(state.get('available_tools', '')),
+                                    input_status=str(state.get('input_status', '')),
+                                    answer_status=str(state.get('answer_status', '')))
 
         routed_agent = self.llm_interface.generate(full_prompt)
-        self.route(state)
-
+        
+        # State'e `routed_agent`'ı ekleyerek döndür. `route` metodu bunu kullanacak.
         return {"routed_agent": routed_agent}
-   
