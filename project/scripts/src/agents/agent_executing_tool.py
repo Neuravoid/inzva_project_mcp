@@ -1,5 +1,6 @@
+# neuravoid/inzva_project_mcp/inzva_project_mcp-ede13d7216f472a3544df84fe293f51acc2d9f74/project/scripts/src/agents/agent_executing_tool.py
+
 from loguru import logger
-from src.main.prompts import Prompts, format_prompt
 from src.agents.utils import execute_tool_with_params
 from src.database.state_store import StateStore
 
@@ -10,27 +11,34 @@ class ToolExecutingAgent():
         self.client_session = client_session
         self.data_store = data_store or StateStore()
 
-    def process(self, state):
-        # Tool selection ve input parameter extraction burada değil, 
-        # önceki agent'lar tarafından yapılmış olmalı
-        selected_tool = state.get('selected_tool', {})
-        input_params = state.get('input_params', {})
-        
-        if not selected_tool or not selected_tool.get('tool_name'):
-            logger.error("No tool selected for execution")
-            return {"execution_result": {"error": "No tool selected"}}
+    async def process(self, state):
+        """Process state and execute the selected tool."""
+        logger.info("Processing in ToolExecutingAgent")
 
-        execution_result = execute_tool_with_params(
-            selected_tool['tool_name'],
-            input_params,
+        selected_tool = state.get('selected_tool', {})
+        # HATA DÜZELTİLDİ: 'input_params' yerine 'tool_inputs' kullanılıyor
+        tool_inputs = state.get('tool_inputs', {}) 
+        
+        tool_name = selected_tool.get('name')
+        if not tool_name or tool_name == 'no_tool_found':
+            logger.error("No valid tool selected for execution.")
+            return {"tool_result": {"error": "No valid tool was selected to be executed."}}
+
+        logger.info(f"Executing tool '{tool_name}' with inputs: {tool_inputs}")
+
+        execution_result = await execute_tool_with_params(
+            tool_name,
+            tool_inputs,
             self.client_session
         )
-        logger.info(f"Executed tool {selected_tool['tool_name']} with result: {execution_result}")
+        logger.info(f"Executed tool {tool_name} with result: {execution_result}")
+        
         self.data_store.save_state({
             "current_agent": "tool_executing",
             "tool_result": execution_result
-        })
-        return {
-            "execution_result": execution_result
-        }
+        }, state.get("session_id"))
 
+        # HATA DÜZELTİLDİ: State anahtarı 'tool_result' olarak güncellendi
+        return {
+            "tool_result": execution_result
+        }

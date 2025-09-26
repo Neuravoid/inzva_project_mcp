@@ -1,0 +1,11 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+loguru==0.7.2
+
+# Mevcut projenizde zaten olan paketler (referans için)
+# google-generativeai
+# langchain
+# langgraph
+# mcp
