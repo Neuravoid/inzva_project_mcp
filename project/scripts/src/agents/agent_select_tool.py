@@ -8,7 +8,7 @@ from src.main.model import LLMInterface
 
 class ToolSelectingAgent():
 
-    def __init__(self, llm_interface=LLMInterface(), client_session=None, data_store=None, session_id=None):
+    def __init__(self, llm_interface=None, client_session=None, data_store=None, session_id=None):
         self.prompt = Prompts.get_tool_selecting_agent_prompt()
         self.data_store = data_store or StateStore()
         self.llm_interface = llm_interface

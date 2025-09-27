@@ -3,14 +3,36 @@ from mcp.client.stdio import stdio_client
 import asyncio
 from pathlib import Path
 import re
+import os
 from loguru import logger
+from typing import TYPE_CHECKING
 
-async def open_client() -> ClientSession:
+if TYPE_CHECKING:
+    # For type checkers only; avoids importing `mcp` at runtime during module import
+    from mcp import ClientSession, StdioServerParameters
+
+async def open_client(username: str, password: str) -> 'ClientSession':
+    # Import mcp lazily to avoid importing its dependencies (pydantic, etc.) at module import time.
+    try:
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
+    except Exception as e:
+        # Provide a clearer error if mcp import fails inside the container
+        raise ImportError(f"Failed to import mcp package: {e}")
+
+    # Eğer username veya password boşsa, hata ver
+    if not username or not password:
+        raise ValueError("MCP username and password must be provided.")
+
     server_params = StdioServerParameters(
         command="npx",
-        args=["-y", "mcp-remote", "https://mcp.turkishtechlab.com/mcp"],
+        args=[
+            "-y", "mcp-remote", "https://mcp.turkishtechlab.com/mcp",
+            "--username", username,
+            "--password", password
+        ],
     )
-    
+
     err_log = open("mcp_errors.log", "w", encoding="utf-8")
     stdio_cm = stdio_client(server_params, errlog=err_log)
     
@@ -52,7 +74,7 @@ async def open_client() -> ClientSession:
     client_session.close = _close_wrapper
     return client_session
 
-async def get_structured_tools(session: ClientSession) -> list:
+async def get_structured_tools(session: 'ClientSession') -> list:
     tools_resp = await session.list_tools()
     langgraph_ready_tools = []
     for tool in tools_resp.tools:

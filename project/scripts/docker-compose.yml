@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      # Use the current scripts folder as build context (we run docker-compose from scripts/)
+      context: .
+      dockerfile: ./chatbot-backend/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      # Veritabanı dosyasının kalıcı olmasını sağlar
+      - ./chatbot-backend/workflow_state.db:/app/workflow_state.db
+    environment:
+      # Bu değerler .env dosyasından otomatik olarak alınacak
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MCP_USER=${MCP_USER}
+      - MCP_PASSWORD=${MCP_PASSWORD}
+    networks:
+      - chatbot-net
+
+  frontend:
+    build:
+      context: ./chatbot-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - chatbot-net
+
+networks:
+  chatbot-net:
+    driver: bridge

@@ -9,7 +9,7 @@ import re
 
 class InputParameterAgent():
 
-    def __init__(self, llm_interface=LLMInterface(), client_session=None, data_store=None):
+    def __init__(self, llm_interface=None, client_session=None, data_store=None):
         self.prompt = Prompts.get_input_parameter_agent_prompt()
         self.llm_interface = llm_interface
         self.client_session = client_session

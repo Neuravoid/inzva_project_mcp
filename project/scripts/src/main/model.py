@@ -1,16 +1,15 @@
 import google.generativeai as genai
 import os
-from dotenv import load_dotenv
 
 class LLMInterface:
-    def __init__(self):
-        load_dotenv()
-        # Configure the API key for authentication
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        # Initialize the Gemini 2.5 Flash model
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+    def __init__(self, api_key: str):
+        if not api_key:
+            raise ValueError("A Gemini API key must be provided.")
+        # Kimlik doğrulama için API anahtarını yapılandır
+        genai.configure(api_key=api_key)
+        # Gemini 1.5 Flash modelini başlat
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def generate(self, question: str) -> str:
-
         response = self.model.generate_content(question)
         return response.text
