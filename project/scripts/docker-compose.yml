@@ -10,10 +10,8 @@ services:
       # Veritabanı dosyasının kalıcı olmasını sağlar
       - ./chatbot-backend/workflow_state.db:/app/workflow_state.db
     environment:
-      # Bu değerler .env dosyasından otomatik olarak alınacak
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - MCP_USER=${MCP_USER}
-      - MCP_PASSWORD=${MCP_PASSWORD}
+      MCP_USER: "573527867"
+      MCP_PASSWORD: "188129"
     networks:
       - chatbot-net
 

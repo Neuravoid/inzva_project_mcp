@@ -1,29 +1,30 @@
-# --- STAGE 1: The Builder ---
-FROM node:20-slim as builder
-RUN npm install -g mcp-remote
+# npx'in sorunsuz çalışması için tam bir Node.js imajını temel alıyoruz.
+FROM node:20
 
-# --- STAGE 2: The Final Application ---
-FROM python:3.10-slim
+# Bu Node.js imajının içine Python ve gerekli paketleri kuruyoruz (venv + distutils)
+RUN apt-get update && \
+    apt-get install -y python3 python3-venv python3-distutils build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# --- FIX ---
-# Add the Node.js binary directory to the system's PATH
-ENV PATH="/usr/local/bin:${PATH}"
-
-# Copy the necessary files from the builder stage
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
-COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
-
-# Set Python environment variables
+# Python ortam değişkenlerini ayarla
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# Virtual environment oluştur
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 WORKDIR /app
 
-# Install Python dependencies
-COPY ./chatbot-backend/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Ana 'scripts' dizinindeki requirements.txt dosyasını kopyala
+COPY ./requirements.txt ./requirements.txt
 
-# Copy application source code
+# Upgrade pip/setuptools/wheel inside venv and install requirements using venv pip
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    $VIRTUAL_ENV/bin/pip install --no-cache-dir -r requirements.txt
+
+# Uygulama kaynak kodunu kopyala
 COPY ./src ./src
 COPY ./chatbot-backend/ ./
 

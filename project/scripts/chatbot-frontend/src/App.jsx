@@ -2,24 +2,30 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
-import Login from './components/Login'; // Login komponentini import et
+import Login from './components/Login';
+import Instructions from './components/Instructions';
 
 function App() {
+  // 'login', 'instructions', 'chat' durumlarını yönetmek için
+  const [appState, setAppState] = useState('login');
+  const [credentials, setCredentials] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [credentials, setCredentials] = useState(null);
 
   useEffect(() => {
-    // Benzersiz oturum kimliği oluştur
     setSessionId(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
   }, []);
 
+  // 1. Adım: Login bilgileri alındı, talimatlar ekranına geç
   const handleLogin = (creds) => {
     setCredentials(creds);
-    setIsAuthenticated(true);
-    // İlk karşılama mesajını ekle
+    setAppState('instructions');
+  };
+
+  // 2. Adım: Kullanıcı proxy'i başlattı, sohbet ekranına geç
+  const handleInstructionsComplete = () => {
+    setAppState('chat');
     setMessages([
       {
         id: 1,
@@ -43,10 +49,8 @@ function App() {
         body: JSON.stringify({
           message: messageText,
           session_id: sessionId,
-          // Kimlik bilgilerini her istekte backend'e gönder
+          // Backend'e sadece gemini api anahtarını gönderiyoruz
           gemini_api_key: credentials.gemini_api_key,
-          mcp_user: credentials.mcp_user,
-          mcp_password: credentials.mcp_password,
         })
       });
 
@@ -67,12 +71,15 @@ function App() {
     }
   };
 
-  // Eğer kullanıcı giriş yapmamışsa Login ekranını göster
-  if (!isAuthenticated) {
+  // Hangi aşamada olduğumuza göre doğru ekranı göster
+  if (appState === 'login') {
     return <Login onLogin={handleLogin} />;
   }
 
-  // Giriş yapılmışsa sohbet arayüzünü göster
+  if (appState === 'instructions') {
+    return <Instructions credentials={credentials} onComplete={handleInstructionsComplete} />;
+  }
+
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark font-display">
       <Header />
